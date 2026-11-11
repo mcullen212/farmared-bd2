@@ -1,0 +1,11 @@
+id_proveedor,razon_social,cuit,tipo,ciudad,provincia,telefono,activo
+PRV101,Distribuidora Caballito Demo,30-00000101-0,Droguería,Buenos Aires,Buenos Aires,1100000201,True
+PRV102,Distribuidora Belgrano Demo,30-00000102-0,Droguería,Buenos Aires,Buenos Aires,1100000202,True
+PRV103,Distribuidora Rosario Centro Demo,30-00000103-0,Droguería,Rosario,Santa Fe,1100000203,True
+PRV104,Distribuidora Santa Fe Sur Demo,30-00000104-0,Droguería,Santa Fe,Santa Fe,1100000204,True
+PRV105,Distribuidora Córdoba Norte Demo,30-00000105-0,Droguería,Córdoba,Córdoba,1100000205,True
+PRV106,Distribuidora Mendoza Centro Demo,30-00000106-0,Droguería,Mendoza,Mendoza,1100000206,True
+PRV107,Distribuidora Salta Centro Demo,30-00000107-0,Droguería,Salta,Salta,1100000207,True
+PRV108,Distribuidora Tucumán Norte Demo,30-00000108-0,Droguería,San Miguel de Tucumán,Tucumán,1100000208,True
+PRV109,Distribuidora La Plata Centro Demo,30-00000109-0,Droguería,La Plata,Buenos Aires,1100000209,True
+PRV110,Distribuidora Mar del Plata Demo,30-00000110-0,Droguería,Mar del Plata,Buenos Aires,1100000210,True

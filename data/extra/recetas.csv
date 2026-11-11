@@ -1,0 +1,11 @@
+id_receta,id_cliente,medico,matricula_medico,fecha_emision,tipo,dispensas_autorizadas,dispensas_realizadas,proxima_dispensa,estado
+RC101,C101,Dra. Paula Díaz,MP-90101,2026-11-01,Simple,1,1,,Completada
+RC102,C102,Dr. Luis Vera,MP-90102,2026-11-01,Simple,1,0,,Vigente
+RC103,C103,Dra. Micaela Soto,MP-90103,2026-11-02,Tratamiento prolongado,3,1,2026-12-04,Vigente
+RC104,C104,Dr. Pablo Vidal,MP-90104,2026-11-02,Simple,1,0,,Vigente
+RC105,C105,Dra. Clara Arias,MP-90105,2026-11-03,Simple,1,0,,Vigente
+RC106,C106,Dr. Marcos Vidal,MP-90106,2026-11-03,Simple,1,0,,Vigente
+RC107,C107,Dra. Sara Nieto,MP-90107,2026-11-04,Simple,1,0,,Vigente
+RC108,C108,Dr. Iván León,MP-90108,2026-11-04,Simple,1,0,,Vigente
+RC109,C109,Dra. Eva Núñez,MP-90109,2026-11-05,Simple,1,0,,Vigente
+RC110,C101,Dra. Paula Díaz,MP-90101,2026-11-06,Simple,1,0,,Vigente

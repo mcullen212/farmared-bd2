@@ -1,0 +1,11 @@
+id_cliente,nombre,apellido,dni,email,telefono,ciudad,provincia,obra_social,nro_afiliado,activo
+C101,Alicia,Ramos,99000101,alicia.ramos@example.com,,Buenos Aires,Buenos Aires,OSDE,DEMO-101,True
+C102,Bruno,Ferreyra,99000102,bruno.ferreyra@example.com,,Buenos Aires,Buenos Aires,,,True
+C103,Camila,Pereyra,99000103,camila.pereyra@example.com,,Rosario,Santa Fe,,,True
+C104,Diego,Méndez,99000104,diego.mendez@example.com,,Santa Fe,Santa Fe,,,True
+C105,Emilia,Torres,99000105,emilia.torres@example.com,,Córdoba,Córdoba,,,True
+C106,Franco,Silva,99000106,franco.silva@example.com,,Mendoza,Mendoza,,,True
+C107,Graciela,Ríos,99000107,graciela.rios@example.com,,Salta,Salta,,,True
+C108,Hugo,Acosta,99000108,hugo.acosta@example.com,,San Miguel de Tucumán,Tucumán,,,True
+C109,Inés,Medina,99000109,ines.medina@example.com,,La Plata,Buenos Aires,,,True
+C110,Joaquín,Romero,99000110,joaquin.romero@example.com,,Mar del Plata,Buenos Aires,,,True

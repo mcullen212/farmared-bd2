@@ -1,0 +1,11 @@
+id_farmaceutico,nombre,apellido,matricula,cargo,id_sucursal,activo
+F101,Ana,Luna,MD-101,Director Técnico,S101,True
+F102,Federico,Paz,MD-102,Director Técnico,S102,True
+F103,Julia,Soria,MD-103,Director Técnico,S103,True
+F104,Lucas,Benítez,MD-104,Director Técnico,S104,True
+F105,María,Vega,MD-105,Director Técnico,S105,True
+F106,Elena,Suárez,MD-106,Director Técnico,S106,True
+F107,Andrés,Costa,MD-107,Director Técnico,S107,True
+F108,Sofía,Molina,MD-108,Director Técnico,S108,True
+F109,Tomás,Ruiz,MD-109,Director Técnico,S109,True
+F110,Valentina,Rojas,MD-110,Director Técnico,S110,True

@@ -1,0 +1,11 @@
+id_sucursal,nombre,tipo,direccion,ciudad,provincia,telefono,activo
+S101,Farmacia Caballito,Farmacia,Av. Rivadavia 5200,Buenos Aires,Buenos Aires,1100000101,True
+S102,Farmacia Belgrano,Farmacia,Av. Cabildo 2200,Buenos Aires,Buenos Aires,1100000102,True
+S103,Farmacia Rosario Centro,Farmacia,Córdoba 1350,Rosario,Santa Fe,1100000103,True
+S104,Farmacia Santa Fe Sur,Farmacia,San Martín 1750,Santa Fe,Santa Fe,1100000104,True
+S105,Farmacia Córdoba Norte,Farmacia,Av. Rafael Núñez 4200,Córdoba,Córdoba,1100000105,True
+S106,Farmacia Mendoza Centro,Farmacia,Av. San Martín 1100,Mendoza,Mendoza,1100000106,True
+S107,Farmacia Salta Centro,Farmacia,Caseros 650,Salta,Salta,1100000107,True
+S108,Farmacia Tucumán Norte,Farmacia,Av. Salta 850,San Miguel de Tucumán,Tucumán,1100000108,True
+S109,Farmacia La Plata Centro,Farmacia,Calle 12 1320,La Plata,Buenos Aires,1100000109,True
+S110,Farmacia Mar del Plata,Farmacia,Av. Colón 2900,Mar del Plata,Buenos Aires,1100000110,True

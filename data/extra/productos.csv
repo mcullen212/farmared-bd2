@@ -1,0 +1,11 @@
+id_producto,nombre,principio_activo,categoria,presentacion,condicion_venta,precio_unit,id_proveedor,activo
+PRD101,Loratadina 10mg x10,Loratadina,Antialérgico,Comprimidos x10,Venta libre,3200,PRV101,True
+PRD102,Ibuprofeno 200mg x20,Ibuprofeno,Analgésico,Comprimidos x20,Venta libre,4200,PRV102,True
+PRD103,"Solución salina 0,9% 100ml",Solución salina,Higiene nasal,Solución 100 ml,Venta libre,2600,PRV103,True
+PRD104,Clotrimazol 1% 20g,Clotrimazol,Antimicótico,Crema 20 g,Venta libre,4900,PRV104,True
+PRD105,Omeprazol 20mg x14,Omeprazol,Gastroprotector,Cápsulas x14,Bajo receta,6800,PRV105,True
+PRD106,Amoxicilina 500mg x16,Amoxicilina,Antibiótico,Cápsulas x16,Bajo receta,9500,PRV106,True
+PRD107,Enalapril 10mg x30,Enalapril,Antihipertensivo,Comprimidos x30,Bajo receta,8900,PRV107,True
+PRD108,Metformina 850mg x30,Metformina,Antidiabético,Comprimidos x30,Bajo receta,9100,PRV108,True
+PRD109,Diclofenac 1% 50g,Diclofenac,Antiinflamatorio,Gel 50 g,Venta libre,4700,PRV109,True
+PRD110,Povidona yodada 10% 60ml,Povidona yodada,Antiséptico,Solución 60 ml,Venta libre,3900,PRV110,True
