@@ -1,0 +1,56 @@
+services:
+  mongo:
+    image: mongo:8.0
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test:
+        - CMD
+        - mongosh
+        - --quiet
+        - --eval
+        - |
+          try {
+            rs.status();
+          } catch (error) {
+            if (error.code !== 94) throw error;
+            rs.initiate({_id: "rs0", members: [{_id: 0, host: "mongo:27017"}]});
+          }
+          quit(db.hello().isWritablePrimary ? 0 : 1);
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  neo4j:
+    image: neo4j:5.26
+    environment:
+      NEO4J_AUTH: neo4j/farmared-local
+    volumes:
+      - neo4j-data:/data
+    healthcheck:
+      test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "farmared-local", "RETURN 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+
+  workspace:
+    image: mcr.microsoft.com/devcontainers/python:3.12
+    command: ["sleep", "infinity"]
+    volumes:
+      - .:/workspaces/farmared-bd2
+    working_dir: /workspaces/farmared-bd2
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/farmared?replicaSet=rs0
+      NEO4J_URI: bolt://neo4j:7687
+      NEO4J_USER: neo4j
+      NEO4J_PASSWORD: farmared-local
+    depends_on:
+      mongo:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+
+volumes:
+  mongo-data:
+  neo4j-data:

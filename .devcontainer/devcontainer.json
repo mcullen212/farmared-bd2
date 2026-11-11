@@ -1,0 +1,7 @@
+{
+  "name": "FarmaRed",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "workspace",
+  "workspaceFolder": "/workspaces/farmared-bd2",
+  "shutdownAction": "stopCompose"
+}
