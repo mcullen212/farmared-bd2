@@ -145,3 +145,60 @@ de `PRD101`. Ambos son de venta libre. El primero tiene el lote `L001`
 en esa sucursal y el segundo tiene un lote en `S101`. Con el cliente activo `C001`
 y fecha de prueba 2026-11-11, el caso permite verificar que el saldo de
 `L001` se conserva al abortar.
+
+## Grafo Neo4j, q06 y ABM de clientes (P2)
+
+Neo4j guarda una copia reducida de MongoDB (clientes, ventas, recetas,
+farmacéuticos y sucursales) para q03, q04 y q10. Se puede borrar y
+reconstruir en cualquier momento. Los comandos siguientes son para la terminal
+del Codespace o de `workspace`; desde la Mac anteponé
+`docker compose exec workspace` como en la carga de MongoDB.
+
+```sh
+# Construir el grafo desde MongoDB (correrlo de nuevo no duplica nada)
+/tmp/farmared-venv/bin/python -m src.proyeccion.construir
+# Borrarlo y rearmarlo, por ejemplo después de --reiniciar-demo
+/tmp/farmared-venv/bin/python -m src.proyeccion.construir --reset
+
+# Consultas sobre el grafo
+/tmp/farmared-venv/bin/python -m src.consultas_neo4j q03 C001
+/tmp/farmared-venv/bin/python -m src.consultas_neo4j q04
+/tmp/farmared-venv/bin/python -m src.consultas_neo4j q10 S002
+
+# q06 lee de MongoDB
+/tmp/farmared-venv/bin/python -m src.consultas_mongo q06 --hoy 2026-11-12
+```
+
+El grafo se puede ver en Neo4j Browser (`http://localhost:7474`, usuario
+`neo4j`, contraseña `farmared-local`) con `MATCH (n) RETURN n LIMIT 100`.
+
+### q13: ABM de clientes y actualización del grafo
+
+```sh
+/tmp/farmared-venv/bin/python -m src.abm_clientes ver C001
+/tmp/farmared-venv/bin/python -m src.abm_clientes alta --json '{"nombre": "Ana", "apellido": "Gil", "dni": "40111222", "obra_social": "OSDE", "nro_afiliado": "OS-1"}'
+/tmp/farmared-venv/bin/python -m src.abm_clientes modificar C111 --json '{"telefono": "11-5555-0000"}'
+/tmp/farmared-venv/bin/python -m src.abm_clientes baja C111
+/tmp/farmared-venv/bin/python -m src.proyeccion.consumidor
+```
+
+Un alta con un DNI existente se rechaza gracias al índice único de
+`clientes.dni`. Cada alta, modificación o baja deja un evento en
+`proyeccion_pendiente` dentro de la misma transacción. El consumidor relee el
+estado actual de MongoDB, actualiza Neo4j con `MERGE` y marca el evento como
+procesado. Si Neo4j no responde, el evento queda pendiente para la próxima
+corrida.
+
+Para q14, P3 registra la venta con
+`registrar_evento(db, "q14.venta", [{"entidad": "venta", "id": ...}, {"entidad": "receta", "id": ...}], session=session)`
+de `src/proyeccion/eventos.py`, dentro de su transacción.
+
+### Tests
+
+Son tests de integración: necesitan MongoDB y Neo4j levantados. Reinician
+`farmared_demo` y el grafo, así que después hay que reconstruir el grafo de la
+base habitual con `construir --reset`.
+
+```sh
+/tmp/farmared-venv/bin/python -m pytest tests
+```
