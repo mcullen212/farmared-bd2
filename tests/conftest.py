@@ -22,10 +22,10 @@ def conexiones():
         pytest.skip(f"Faltan variables de entorno: {faltantes}")
     from pymongo import MongoClient
 
-    from src.conexion_neo4j import abrir_driver
+    from src.conexion_neo4j import abrir_neo4j_driver
 
     cliente = MongoClient(os.environ["MONGODB_URI"])
-    driver = abrir_driver()
+    driver = abrir_neo4j_driver()
     yield cliente["farmared_demo"], driver
     driver.close()
     cliente.close()

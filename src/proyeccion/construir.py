@@ -49,7 +49,7 @@ def construir_grafo(db, driver, *, reset=False):
 
 
 def main():
-    from ..conexion_neo4j import abrir_driver, abrir_mongo
+    from ..conexion_neo4j import abrir_neo4j_driver, abrir_mongo
 
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -57,7 +57,7 @@ def main():
     args = parser.parse_args()
 
     cliente, db = abrir_mongo()
-    with cliente, abrir_driver() as driver:
+    with cliente, abrir_neo4j_driver() as driver:
         conteos = construir_grafo(db, driver, reset=args.reset)
     for grupo, valores in conteos.items():
         print(f"{grupo}:")

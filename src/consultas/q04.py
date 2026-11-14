@@ -20,3 +20,4 @@ def q04(driver):
     """
     with driver.session() as session:
         return [r.data() for r in session.run(CONSULTA)]
+    return None

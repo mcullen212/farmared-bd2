@@ -3,7 +3,7 @@
 from neo4j import GraphDatabase
 
 from src.proyeccion.construir import construir_grafo, contar
-from src.proyeccion.consumidor import procesar_pendientes
+from src.proyeccion.consumidor import MAX_INTENTOS, procesar_pendientes
 from src.proyeccion.eventos import registrar_evento
 
 
@@ -74,3 +74,28 @@ def test_referencia_inexistente_queda_con_error(entorno):
     assert procesar_pendientes(db, driver) == {"procesados": 0, "fallidos": 1}
     evento = db.proyeccion_pendiente.find_one({"refs.id": "C999"})
     assert "C999" in evento["ultimo_error"]
+
+
+def test_error_permanente_pasa_a_error_y_no_se_reintenta(entorno):
+    db, driver = entorno
+    id_evento = registrar_evento(db, "test", [{"entidad": "cliente", "id": "C999"}])
+    for _ in range(MAX_INTENTOS):
+        assert procesar_pendientes(db, driver) == {"procesados": 0, "fallidos": 1}
+    evento = db.proyeccion_pendiente.find_one({"_id": id_evento})
+    assert evento["estado"] == "error"
+    assert evento["intentos"] == MAX_INTENTOS
+    # Ya no se toca: la próxima corrida no lo cuenta.
+    assert procesar_pendientes(db, driver) == {"procesados": 0, "fallidos": 0}
+
+
+def test_neo4j_caido_no_manda_a_error(entorno):
+    db, _ = entorno
+    id_evento = registrar_evento(db, "test", [{"entidad": "cliente", "id": "C001"}])
+    caido = GraphDatabase.driver("bolt://127.0.0.1:1", auth=("neo4j", "x"),
+                                 connection_timeout=1, max_transaction_retry_time=0)
+    with caido:
+        for _ in range(MAX_INTENTOS + 1):
+            procesar_pendientes(db, caido)
+    evento = db.proyeccion_pendiente.find_one({"_id": id_evento})
+    assert evento["estado"] == "pendiente"
+    assert evento["intentos"] == MAX_INTENTOS + 1

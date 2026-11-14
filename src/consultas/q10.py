@@ -31,3 +31,4 @@ def q10(driver, id_sucursal):
         if session.run(SUCURSAL, id_sucursal=id_sucursal).single() is None:
             raise LookupError(f"No existe la sucursal {id_sucursal}")
         return [r.data() for r in session.run(CONSULTA, id_sucursal=id_sucursal)]
+    return None

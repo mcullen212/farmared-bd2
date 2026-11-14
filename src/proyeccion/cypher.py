@@ -24,12 +24,19 @@ def _fecha(valor):
 
 
 def _filas(docs, campos):
-    """Convierte documentos de Mongo en diccionarios con solo los campos del grafo.
+    """Arma la lista que se manda a Neo4j como parámetro `$filas`.
 
-    `campos` mapea nombre_en_grafo -> nombre_en_mongo.
+    De cada documento de Mongo se queda solo con los campos que van al grafo,
+    les pone el nombre que usa el grafo y convierte las fechas a `date`.
+    `campos` es {nombre_en_el_grafo: nombre_en_mongo}.
+
+    Ejemplo:
+        docs   = [{"id_cliente": "C001", "nombre": "Lucía", "dni": "31245678", ...}]
+        campos = {"id": "id_cliente", "nombre": "nombre"}
+        -> [{"id": "C001", "nombre": "Lucía"}]     (el dni no pasa)
     """
     return [
-        {destino: _fecha(doc.get(origen)) for destino, origen in campos.items()}
+        {campo_grafo: _fecha(doc.get(campo_mongo)) for campo_grafo, campo_mongo in campos.items()}
         for doc in docs
     ]
 
@@ -69,6 +76,15 @@ def proyectar_farmaceuticos(tx, docs):
 
 
 def proyectar_clientes(tx, docs):
+    """Crea o actualiza un nodo Cliente por cada documento de `docs`.
+
+    1. En Python, `_filas` arma la lista [{id, nombre, apellido, activo}, ...].
+    2. `tx.run` manda a Neo4j el texto de la consulta y, aparte, esa lista
+       con el nombre `filas`. Dentro de la consulta se la usa como `$filas`.
+    3. En Neo4j, `UNWIND $filas AS f` convierte la lista en una fila por
+       cliente. Para cada fila, `MERGE` busca el Cliente con ese id (o lo crea)
+       y `SET` le copia los valores actuales de Mongo.
+    """
     filas = _filas(docs, {
         "id": "id_cliente", "nombre": "nombre", "apellido": "apellido", "activo": "activo",
     })
@@ -105,6 +121,17 @@ def proyectar_recetas(tx, docs):
 
 
 def proyectar_ventas(tx, docs):
+    """Crea o actualiza un nodo Venta por documento, con sus flechas.
+
+    Para cada fila (una por venta):
+      A. MERGE de la Venta por id + SET de sus datos.
+      B. Flecha (Cliente)-[:REALIZO]->(Venta).
+      C. Flecha (Venta)-[:ATENDIDA_POR]->(Farmaceutico).
+      D. Flecha (Venta)-[:USA_RECETA]->(Receta), solo si la venta tiene receta.
+    En B, C y D: si hay una flecha vieja hacia OTRO nodo (porque el dato cambió
+    en Mongo), primero se borra; después se asegura el nodo del otro extremo
+    (MERGE por id) y recién ahí la flecha (MERGE entre las dos variables).
+    """
     filas = _filas(docs, {
         "id": "id_venta", "fecha": "fecha", "estado": "estado", "tipo": "tipo",
         "total": "total", "id_cliente": "id_cliente",

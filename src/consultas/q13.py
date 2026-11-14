@@ -48,6 +48,7 @@ def _siguiente_id(db, session):
 def _en_transaccion(db, funcion):
     with db.client.start_session() as session:
         return session.with_transaction(funcion)
+    return None
 
 
 def crear_cliente(db, datos):
