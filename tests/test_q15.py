@@ -16,6 +16,13 @@ from src.consultas.q15 import descontar_stock
 HOY = date.today()
 
 
+def test_sesion_externa_sin_transaccion_se_rechaza():
+    # No hay acceso a MongoDB antes de verificar que la sesión sea transaccional.
+    with pymongo.MongoClient(connect=False) as cliente, cliente.start_session() as sesion:
+        with pytest.raises(ValueError, match="transacción activa"):
+            descontar_stock(None, "VTEST", hoy=HOY, session=sesion)
+
+
 @pytest.fixture
 def db():
     uri = os.environ.get("MONGODB_URI")
@@ -52,9 +59,9 @@ def foto(db):
     }
 
 
-def rechazar_sin_cambios(db, excepcion=ValueError):
+def rechazar_sin_cambios(db, excepcion=ValueError, *, mensaje=None):
     antes = foto(db)
-    with pytest.raises(excepcion):
+    with pytest.raises(excepcion, match=mensaje):
         descontar_stock(db, "VTEST", hoy=HOY)
     assert foto(db) == antes, "Q15 dejó descuentos parciales ante un rechazo"
 
@@ -114,7 +121,7 @@ def test_stock_total_insuficiente_rechaza_sin_modificar(db):
 
 def test_fallo_segundo_producto_revierte_descuento_del_primero(db):
     actualizar_venta(db, detalle=detalle(("P1", 4), ("P2", 4)))
-    rechazar_sin_cambios(db)
+    rechazar_sin_cambios(db, mensaje="Stock vigente insuficiente para P2: faltan 1 unidades")
 
 
 def test_fefo_descontar_primero_lote_mas_proximo(db):

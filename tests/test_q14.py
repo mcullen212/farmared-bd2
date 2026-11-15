@@ -102,9 +102,9 @@ def foto(db):
     }
 
 
-def rechazar_sin_cambios(db, datos, excepcion=ValueError):
+def rechazar_sin_cambios(db, datos, excepcion=ValueError, *, mensaje=None):
     antes = foto(db)
-    with pytest.raises(excepcion):
+    with pytest.raises(excepcion, match=mensaje):
         registrar_venta(db, datos, hoy=HOY)
     assert foto(db) == antes, "Una venta rechazada dejó cambios parciales"
 
@@ -192,7 +192,12 @@ def test_receta_archivada_correcta_se_completa(db):
 
 
 def test_receta_simple_se_completa(db):
-    venta = registrar_venta(db, entrada(id_receta="R1", detalle=[{"id_producto": "PR", "cantidad": 1}]), hoy=HOY)
+    venta = registrar_venta(db, entrada(id_venta="VTEST", id_receta="R1", detalle=[
+        {"id_producto": "PR", "cantidad": 1}, {"id_producto": "P2", "cantidad": 2}]), hoy=HOY)
+    assert venta["total"] == 16800
+    assert venta["movimiento_stock"]["estado"] == "aplicado"
+    assert db.stock_lotes.find_one({"id_lote": "LR"})["unidades"] == 4
+    assert db.stock_lotes.find_one({"id_lote": "L3"})["unidades"] == 1
     receta = db.recetas.find_one({"id_receta": "R1"})
     assert (receta["estado"], receta["dispensas_realizadas"]) == ("Completada", 1)
     assert receta["proxima_dispensa"] is None
@@ -237,8 +242,9 @@ def test_medio_de_pago_invalido(db):
 
 
 def test_venta_sin_stock_revierte_venta_receta_stock_y_evento(db):
-    rechazar_sin_cambios(db, entrada(id_receta="R1", detalle=[
-        {"id_producto": "PR", "cantidad": 1}, {"id_producto": "P2", "cantidad": 99}]))
+    rechazar_sin_cambios(db, entrada(id_venta="VTEST", id_receta="R1", detalle=[
+        {"id_producto": "PR", "cantidad": 1}, {"id_producto": "P2", "cantidad": 99}]),
+        mensaje="Stock vigente insuficiente para P2: faltan 96 unidades")
 
 
 def test_venta_con_segundo_producto_sin_stock_revierte_primer_descuento(db):

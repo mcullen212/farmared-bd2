@@ -178,16 +178,27 @@ estado actual de MongoDB, actualiza Neo4j con `MERGE` y marca el evento como
 procesado. Si Neo4j no responde, el evento queda pendiente para la próxima
 corrida.
 
-Para q14, P3 registra la venta con
-`registrar_evento(db, "q14.venta", [{"entidad": "venta", "id": ...}, {"entidad": "receta", "id": ...}], session=session)`
-de `src/proyeccion/eventos.py`, dentro de su transacción.
+### Registro de venta y descuento de stock (Q14 y Q15)
 
-### Acceso para q14 y q15
+Con los CSV cargados en `farmared_demo`, ejecutá estos comandos una vez con
+un ID de venta nuevo. La fecha explícita permite reproducir el ejemplo con
+los vencimientos de los CSV. Si omitís `--hoy`, se usa el día de negocio.
 
-Instanciá `RepositorioMongo(db)` y abrí una sesión con `repo.iniciar_sesion()`.
-Dentro de `session.with_transaction(...)`, pasá `session=session` a las
-operaciones de las colecciones y a `repo.lotes_fefo` y
-`repo.decrementar_lote`. Los servicios controlan el commit y el abort.
+```sh
+export MONGODB_URI='mongodb://mongo:27017/farmared_demo?replicaSet=rs0'
+python -m src.consultas.q14 --hoy 2026-11-12 --json '{
+  "id_venta":"VDEMO14","id_cliente":"C001","id_farmaceutico":"F001",
+  "medio_pago":"Efectivo","fecha":"2026-11-12",
+  "detalle":[{"id_producto":"PRD001","cantidad":1}]
+}'
+python -m src.consultas.q15 VDEMO14 --hoy 2026-11-12
+```
+
+Q14 llama a Q15 dentro de la misma transacción. Si falta stock, MongoDB
+revierte la venta y los decrementos parciales. Si hay una receta, se
+actualiza después del descuento y se confirma junto con la venta, el stock
+y el evento de proyección. La segunda orden devuelve las asignaciones
+guardadas por Q14 sin volver a descontar unidades.
 
 Para probar stock insuficiente con los CSV iniciales, usá la sucursal `S001`
 y el farmacéutico `F001` con una unidad de `PRD001` seguida de una unidad

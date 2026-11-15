@@ -18,10 +18,19 @@ CONTACTO_Y_COBERTURA = ("email", "telefono", "ciudad", "provincia", "obra_social
 CAMPOS_ALTA = ("id_cliente", *OBLIGATORIOS, *CONTACTO_Y_COBERTURA)
 
 
-def _vacio_a_none(valor):
-    if isinstance(valor, str):
-        valor = valor.strip()
-    return valor if valor not in ("", None) else None
+def _normalizar_campo(campo, valor):
+    if valor is None:
+        return None
+    if campo == "dni" and type(valor) is int:
+        valor = str(valor)
+    if not isinstance(valor, str):
+        raise ValueError(f"{campo} debe ser texto")
+    return valor.strip() or None
+
+
+def _validar_id_cliente(id_cliente):
+    if not isinstance(id_cliente, str) or not id_cliente.strip():
+        raise ValueError("id_cliente debe ser un texto no vacío")
 
 
 def _normalizar_cobertura(doc):
@@ -48,7 +57,6 @@ def _siguiente_id(db, session):
 def _en_transaccion(db, funcion):
     with db.client.start_session() as session:
         return session.with_transaction(funcion)
-    return None
 
 
 def crear_cliente(db, datos):
@@ -63,33 +71,34 @@ def crear_cliente(db, datos):
     Lanza ValueError si faltan datos, la cobertura es inválida o el DNI ya existe.
     El DNI único lo garantiza el índice único de clientes.dni, no una lectura previa.
     """
+    if not isinstance(datos, dict):
+        raise ValueError("Los datos del alta deben ser un objeto")
     desconocidos = set(datos) - set(CAMPOS_ALTA)
     if desconocidos:
         raise ValueError(f"Campos no permitidos en el alta: {sorted(desconocidos)}")
-    doc = {campo: _vacio_a_none(datos.get(campo)) for campo in CAMPOS_ALTA}
+    doc = {campo: _normalizar_campo(campo, datos.get(campo)) for campo in CAMPOS_ALTA}
     faltantes = [campo for campo in OBLIGATORIOS if not doc[campo]]
     if faltantes:
         raise ValueError(f"Faltan datos obligatorios: {faltantes}")
-    doc["dni"] = str(doc["dni"])
     _normalizar_cobertura(doc)
     doc["activo"] = True
 
     def alta(session):
-        if not doc["id_cliente"]:
-            doc["id_cliente"] = _siguiente_id(db, session)
-        db.clientes.insert_one(doc, session=session)
-        registrar_evento(db, "q13.alta", [{"entidad": "cliente", "id": doc["id_cliente"]}],
+        id_cliente = doc["id_cliente"] or _siguiente_id(db, session)
+        nuevo = {**doc, "id_cliente": id_cliente}
+        db.clientes.insert_one(nuevo.copy(), session=session)
+        registrar_evento(db, "q13.alta", [{"entidad": "cliente", "id": id_cliente}],
                          session=session)
+        return nuevo
 
     try:
-        _en_transaccion(db, alta)
+        return _en_transaccion(db, alta)
     except DuplicateKeyError as error:
         campo = next(iter((error.details or {}).get("keyPattern", {})), "dni")
         if campo == "dni":
             raise ValueError(f"Ya existe un cliente con DNI {doc['dni']}") from None
-        raise ValueError(f"Ya existe un cliente con {campo} {doc.get(campo)}") from None
-    doc.pop("_id", None)
-    return doc
+        valor = (error.details or {}).get("keyValue", {}).get(campo, doc.get(campo))
+        raise ValueError(f"Ya existe un cliente con {campo} {valor}") from None
 
 
 def modificar_cliente(db, id_cliente, cambios):
@@ -103,13 +112,14 @@ def modificar_cliente(db, id_cliente, cambios):
     Devuelve el documento actualizado (sin _id).
     Lanza ValueError si hay campos no permitidos y LookupError si no existe.
     """
-    if not cambios:
-        raise ValueError("No hay cambios para aplicar")
+    _validar_id_cliente(id_cliente)
+    if not isinstance(cambios, dict) or not cambios:
+        raise ValueError("Los cambios deben ser un objeto no vacío")
     no_permitidos = set(cambios) - set(CONTACTO_Y_COBERTURA)
     if no_permitidos:
         raise ValueError(f"Solo se pueden modificar {CONTACTO_Y_COBERTURA}; "
                          f"no permitidos: {sorted(no_permitidos)}")
-    cambios = {campo: _vacio_a_none(valor) for campo, valor in cambios.items()}
+    cambios = {campo: _normalizar_campo(campo, valor) for campo, valor in cambios.items()}
 
     def modificar(session):
         actual = db.clientes.find_one({"id_cliente": id_cliente}, {"_id": 0}, session=session)
@@ -117,7 +127,8 @@ def modificar_cliente(db, id_cliente, cambios):
             raise LookupError(f"No existe el cliente {id_cliente}")
         nuevo = {**actual, **cambios}
         _normalizar_cobertura(nuevo)
-        a_guardar = {campo: nuevo[campo] for campo in CONTACTO_Y_COBERTURA}
+        a_guardar = {**cambios, "obra_social": nuevo["obra_social"],
+                     "nro_afiliado": nuevo["nro_afiliado"]}
         resultado = db.clientes.find_one_and_update(
             {"id_cliente": id_cliente}, {"$set": a_guardar},
             projection={"_id": 0}, return_document=ReturnDocument.AFTER, session=session,
@@ -135,13 +146,18 @@ def dar_de_baja_cliente(db, id_cliente):
     Devuelve el documento actualizado (sin _id). Es idempotente.
     Lanza LookupError si el cliente no existe.
     """
+    _validar_id_cliente(id_cliente)
+
     def baja(session):
         resultado = db.clientes.find_one_and_update(
-            {"id_cliente": id_cliente}, {"$set": {"activo": False}},
+            {"id_cliente": id_cliente, "activo": {"$ne": False}}, {"$set": {"activo": False}},
             projection={"_id": 0}, return_document=ReturnDocument.AFTER, session=session,
         )
         if resultado is None:
-            raise LookupError(f"No existe el cliente {id_cliente}")
+            actual = db.clientes.find_one({"id_cliente": id_cliente}, {"_id": 0}, session=session)
+            if actual is None:
+                raise LookupError(f"No existe el cliente {id_cliente}")
+            return actual
         registrar_evento(db, "q13.baja", [{"entidad": "cliente", "id": id_cliente}],
                          session=session)
         return resultado

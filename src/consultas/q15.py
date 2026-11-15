@@ -79,13 +79,18 @@ def _descontar(db, id_venta, hoy, session):
 def descontar_stock(db, id_venta, *, hoy=None, session=None):
     """Aplica FEFO (vencimiento >= hoy) sin lotes vencidos ni saldos negativos.
 
-    Un fallo en cualquier producto aborta TODOS los descuentos. Las ventas
-    históricas importadas y las ya aplicadas se reconocen sin duplicar cargos.
+    Un fallo en cualquier producto revierte todos los descuentos al abortar
+    la transacción. Si se proporciona una sesión, debe estar en una transacción
+    activa y el llamador debe dejar que el error se propague para abortarla.
+    Las ventas históricas importadas y las ya aplicadas conservan sus saldos.
     """
-    hoy = hoy or dia_de_negocio()
+    if hoy is None:
+        hoy = dia_de_negocio()
     if isinstance(hoy, datetime) or not isinstance(hoy, date):
         raise ValueError("hoy debe ser una fecha (date)")
     if session is not None:
+        if not session.in_transaction:
+            raise ValueError("La sesión de Q15 debe tener una transacción activa")
         return _descontar(db, id_venta, hoy, session)
     with db.client.start_session() as nueva_sesion:
         return nueva_sesion.with_transaction(lambda s: _descontar(db, id_venta, hoy, s))
