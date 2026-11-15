@@ -2,11 +2,11 @@
 
 Los servicios que escriben en MongoDB (q13, q14) llaman a registrar_evento con
 la MISMA sesión de su transacción: si la transacción se aborta, el evento
-tampoco queda. El evento solo dice qué cambió; el consumidor relee los datos
+tampoco queda. El evento solo dice qué cambió, el consumidor relee los datos
 actuales de MongoDB, así que reprocesarlo nunca pisa información más nueva.
 
 Estados de un evento: "pendiente" (falta proyectarlo), "procesado" (ya está en
-Neo4j) o "error" (falló consumidor.MAX_INTENTOS veces; hay que revisarlo a mano).
+Neo4j) o "error" (falló consumidor.MAX_INTENTOS veces, hay que revisarlo a mano).
 """
 
 from datetime import datetime, timezone

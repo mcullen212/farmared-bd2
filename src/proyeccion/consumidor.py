@@ -3,8 +3,8 @@
 Uso: python -m src.proyeccion.consumidor [--limite N]
 
 Para cada evento pendiente (del más viejo al más nuevo):
-  1. relee de MongoDB el estado ACTUAL de cada registro referenciado;
-  2. lo proyecta en Neo4j en una sola transacción (MERGE, idempotente);
+  1. relee de MongoDB el estado ACTUAL de cada registro referenciado,
+  2. lo proyecta en Neo4j en una sola transacción (MERGE, idempotente),
   3. recién entonces marca el evento como procesado.
 Si algo falla, el evento queda pendiente con intentos + 1 y el error guardado,
 para reintentarlo en la próxima corrida. Si Neo4j no responde, se corta la

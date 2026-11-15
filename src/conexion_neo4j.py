@@ -6,7 +6,7 @@ import os
 def abrir_neo4j_driver():
     """Devuelve un driver de Neo4j configurado con NEO4J_URI, NEO4J_USER y NEO4J_PASSWORD.
 
-    Crear el driver no abre ninguna conexión; por eso se llama a
+    Crear el driver no abre ninguna conexión, por eso se llama a
     verify_connectivity(): si Neo4j no responde o las credenciales están mal,
     el error aparece acá con un mensaje claro y no recién en la primera consulta.
     """

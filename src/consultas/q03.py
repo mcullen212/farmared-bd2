@@ -35,7 +35,7 @@ def q03(driver, id_cliente):
     """Devuelve las ventas y recetas de un cliente ordenadas cronológicamente.
 
     Motor: Neo4j. Recorre (Cliente)-[:REALIZO]->(Venta) y
-    (Cliente)-[:TIENE_RECETA]->(Receta); para cada venta suma el farmacéutico,
+    (Cliente)-[:TIENE_RECETA]->(Receta). Para cada venta suma el farmacéutico,
     su sucursal y la receta usada, si hay.
 
     Parámetros:

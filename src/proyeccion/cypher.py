@@ -11,7 +11,7 @@ como el consumidor de eventos (uno o pocos). Todas son idempotentes:
   después hacen MERGE de la correcta. Así, reprocesar después de un cambio
   nunca deja dos relaciones.
 
-Los nodos vecinos se crean por `id` si todavía no existen; sus propiedades las
+Los nodos vecinos se crean por `id` si todavía no existen. Sus propiedades las
 completa su propia proyección.
 """
 
@@ -19,7 +19,7 @@ from datetime import datetime
 
 
 def _fecha(valor):
-    """MongoDB guarda fechas como datetime a las 00:00 UTC; el grafo usa Date."""
+    """MongoDB guarda fechas como datetime a las 00:00 UTC. El grafo usa Date."""
     return valor.date() if isinstance(valor, datetime) else valor
 
 
@@ -129,7 +129,7 @@ def proyectar_ventas(tx, docs):
       C. Flecha (Venta)-[:ATENDIDA_POR]->(Farmaceutico).
       D. Flecha (Venta)-[:USA_RECETA]->(Receta), solo si la venta tiene receta.
     En B, C y D: si hay una flecha vieja hacia OTRO nodo (porque el dato cambió
-    en Mongo), primero se borra; después se asegura el nodo del otro extremo
+    en Mongo), primero se borra, después se asegura el nodo del otro extremo
     (MERGE por id) y recién ahí la flecha (MERGE entre las dos variables).
     """
     filas = _filas(docs, {

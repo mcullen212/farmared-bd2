@@ -25,7 +25,7 @@ def _vacio_a_none(valor):
 
 
 def _normalizar_cobertura(doc):
-    """Valida obra_social y nro_afiliado; sin cobertura implica nro_afiliado null."""
+    """Valida obra_social y nro_afiliado. Sin cobertura implica nro_afiliado null."""
     obra = doc.get("obra_social") or SIN_COBERTURA
     if obra not in OBRAS_SOCIALES:
         raise ValueError(f"Obra social inválida: {obra}. Opciones: {sorted(OBRAS_SOCIALES)}")

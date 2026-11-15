@@ -10,7 +10,7 @@ def q06(db, *, hoy=None):
     """Devuelve recetas de tratamiento prolongado vigentes con la próxima dispensa vencida.
 
     Motor: MongoDB. Filtra recetas con tipo 'Tratamiento prolongado', estado
-    'Vigente' y proxima_dispensa anterior a hoy; incorpora el cliente con $lookup.
+    'Vigente' y proxima_dispensa anterior a hoy. Incorpora el cliente con $lookup.
 
     Parámetros:
         db: base de MongoDB.

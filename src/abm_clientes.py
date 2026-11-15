@@ -6,7 +6,7 @@ Ejemplos:
   python -m src.abm_clientes modificar C001 --json '{"telefono": "11-5555-0000"}'
   python -m src.abm_clientes baja C001
 
-Cada cambio deja un evento en proyeccion_pendiente; para verlo en Neo4j hay que
+Cada cambio deja un evento en proyeccion_pendiente. Para verlo en Neo4j hay que
 correr después `python -m src.proyeccion.consumidor`.
 """
 
