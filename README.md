@@ -1,4 +1,5 @@
 **Sistema de Gestión de Red de Farmacias**
+
 **Trabajo Práctico Obligatorio**
 
 FarmaRed usa MongoDB para las ventas, el stock y las recetas, y Neo4j para consultar las relaciones entre clientes, ventas y sucursales.
