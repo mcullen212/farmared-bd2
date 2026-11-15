@@ -10,22 +10,26 @@ FarmaRed usa MongoDB para las ventas, el stock y las recetas, y Neo4j para consu
 - `src/` contiene la carga de datos y el acceso a MongoDB.
 - `tests/` las pruebas.
 
-## Entorno de desarrollo
+## Preparar el entorno
 
 En GitHub, abrí **Code → Codespaces → Create codespace** en la rama que tenga esta
 configuración. Codespaces inicia MongoDB y Neo4j y abre la terminal del proyecto
 cuando MongoDB es primario del replica set y Neo4j responde a Cypher.
 
-Desde una máquina con Docker Compose, ejecutá estos comandos en la raíz del repositorio.
+En local, con Docker iniciado, ejecutá desde la raíz del repositorio:
 
 ```sh
 docker compose up -d --wait
+docker compose exec workspace bash
 ```
 
-Dentro del contenedor de trabajo, usá `MONGODB_URI` para conectarte a la base
-`farmared` y `NEO4J_URI`, `NEO4J_USER` y `NEO4J_PASSWORD` para conectarte al
-grafo. Las conexiones usan la red interna de Docker y las credenciales son de
-desarrollo. Los datos persisten en volúmenes al detener el entorno.
+En Codespaces, usá la terminal que abre el entorno. Los comandos de Python
+de las secciones siguientes se ejecutan dentro de `workspace` o desde esa
+terminal.
+
+Compose configura `MONGODB_URI` para la base `farmared` del replica set `rs0`
+y `NEO4J_URI`, `NEO4J_USER` y `NEO4J_PASSWORD` para conectarse a Neo4j. Los
+datos persisten en volúmenes al detener el entorno.
 
 Para probar una transacción real desde la máquina que ejecuta Docker Compose,
 ejecutá lo siguiente. La prueba confirma una escritura y la elimina al terminar.
@@ -50,31 +54,22 @@ try {
 JS
 ```
 
-## Carga inicial de MongoDB
+## Cargar MongoDB y construir el grafo de Neo4j
 
-Si estás en la terminal de tu Mac, ejecutá estos comandos desde la raíz del
-repositorio después de iniciar Docker Compose. La instalación y la carga se
-ejecutan dentro de `workspace`, donde Compose ya configuró `MONGODB_URI`.
-Estos comandos cargan la base habitual `farmared`.
-
-```sh
-docker compose exec workspace python -m venv /tmp/farmared-venv
-docker compose exec workspace /tmp/farmared-venv/bin/python -m pip install -r requirements.txt
-docker compose exec workspace /tmp/farmared-venv/bin/python -m src.carga_mongo
-```
-
-Desde la terminal del Codespace, o si ya entraste con
-`docker compose exec workspace bash`, ejecutá estos comandos:
+Desde la terminal del contenedor de trabajo o del Codespace:
 
 ```sh
 python -m venv /tmp/farmared-venv
-/tmp/farmared-venv/bin/python -m pip install -r requirements.txt
-/tmp/farmared-venv/bin/python -m src.carga_mongo
+source /tmp/farmared-venv/bin/activate
+python -m pip install -r requirements.txt
+python -m src.carga_mongo
+python -m src.proyeccion.construir
 ```
 
-El entorno virtual mantiene PyMongo separado del Python del sistema. Podés
-ignorar el aviso de actualización de pip. Si se recrea el contenedor, volvé
-a crear el entorno virtual e instalar las dependencias.
+Volvé a activar el entorno virtual al abrir otra terminal. Si se recrea el
+contenedor, volvé a crear el entorno virtual e instalar las dependencias.
+El último comando proyecta clientes, ventas, recetas, farmacéuticos y
+sucursales desde MongoDB a Neo4j.
 
 El loader valida los CSV originales y los extras disponibles antes de escribir.
 Crea los índices e inserta en una transacción los IDs que aún no existen. Una
@@ -85,53 +80,107 @@ del CSV.
 
 ### Reiniciar y verificar la base de demostración
 
-Usá `farmared_demo` para ver la carga desde cero y conservar los datos de
-`farmared`. Desde la raíz del repo en la terminal de tu Mac, ejecutá:
-
-```sh
-docker compose exec -e 'MONGODB_URI=mongodb://mongo:27017/farmared_demo?replicaSet=rs0' workspace /tmp/farmared-venv/bin/python -m src.carga_mongo --reiniciar-demo
-docker compose exec -e 'MONGODB_URI=mongodb://mongo:27017/farmared_demo?replicaSet=rs0' workspace /tmp/farmared-venv/bin/python -m src.carga_mongo
-```
-
-Desde la terminal del Codespace o del contenedor de trabajo, ejecutá:
+Usá `farmared_demo` para verificar la carga desde cero. Desde la terminal del
+contenedor de trabajo o del Codespace, con el entorno virtual activo:
 
 ```sh
 MONGODB_URI='mongodb://mongo:27017/farmared_demo?replicaSet=rs0' \
-  /tmp/farmared-venv/bin/python -m src.carga_mongo --reiniciar-demo
+  python -m src.carga_mongo --reiniciar-demo
 MONGODB_URI='mongodb://mongo:27017/farmared_demo?replicaSet=rs0' \
-  /tmp/farmared-venv/bin/python -m src.carga_mongo
+  python -m src.carga_mongo
 ```
 
 El primer comando reemplaza los datos importados y vacía la cola de proyección
 de `farmared_demo`. Deberías ver 18 clientes, 15 sucursales, 17 farmacéuticos,
 15 proveedores, 23 productos, 19 recetas, 28 lotes y 26 ventas. Los 32 ítems
 quedan dentro de `ventas.detalle`. El segundo comando debe mostrar `0 nuevos`
-en cada colección. Si se usa Neo4j con esos datos, hay que reconstruir el grafo
-después del reinicio.
+en cada colección. Para consultar esos datos en Neo4j, seguí las instrucciones de la sección Neo4j.
 
-### Ejecutar las consultas de MongoDB
+## Ejecutar las consultas
 
-Con `farmared_demo` cargada, desde la terminal de tu Mac:
+Corré estos comandos desde `workspace` o Codespaces, con el entorno virtual
+activo y la carga inicial completada.
+
+### MongoDB
 
 ```sh
-docker compose exec -e 'MONGODB_URI=mongodb://mongo:27017/farmared_demo?replicaSet=rs0' workspace /tmp/farmared-venv/bin/python -m src.consultas_mongo q01
+python -m src.consultas_mongo q01
+python -m src.consultas_mongo q02
+python -m src.consultas_mongo q05 --hoy 2026-11-12
+python -m src.consultas_mongo q06 --hoy 2026-11-12
+python -m src.consultas_mongo q07
+python -m src.consultas_mongo q08
+python -m src.consultas_mongo q09
+python -m src.consultas_mongo q11 --hoy 2026-11-12
+python -m src.consultas_mongo q12 --hoy 2026-11-12
 ```
 
-En Codespaces o dentro de `workspace`:
+La salida usa JSON extendido de MongoDB. En q05, q06, q11 y q12, `--hoy`
+fija la fecha de referencia. Si omitís el argumento, se usa el día de negocio
+en Buenos Aires. La carga instala la vista de q11.
+
+Para consultar los datos de demostración, indicá la base en el comando:
 
 ```sh
 MONGODB_URI='mongodb://mongo:27017/farmared_demo?replicaSet=rs0' \
-  /tmp/farmared-venv/bin/python -m src.consultas_mongo q01
+  python -m src.consultas_mongo q01
 ```
 
-Reemplazá `q01` por cualquiera de las ocho consultas de P1. La salida usa
-JSON extendido de MongoDB. Para reproducir los ejemplos de q05, q11 y q12,
-agregá `--hoy 2026-11-12` después del nombre de la consulta. Sin ese argumento
-se usa el día de negocio en Buenos Aires. La carga instala la vista de q11.
-Si cargaste los datos con una versión anterior, repetí la carga para crearla.
+### Neo4j
 
-Las [decisiones y ejemplos de P1](docs/DECISIONES_CONSULTAS_P1.md) incluyen
-los resultados de referencia para los CSV del repositorio.
+```sh
+python -m src.consultas_neo4j q03 C001
+python -m src.consultas_neo4j q04
+python -m src.consultas_neo4j q10 S002
+```
+
+En q03, el argumento es el ID del cliente. En q10, es el ID de la sucursal.
+Si querés consultar el grafo con datos de demostración, reconstruí la
+proyección después de cargar `farmared_demo`. El comando borra el grafo
+actual antes de reconstruirlo:
+
+```sh
+MONGODB_URI='mongodb://mongo:27017/farmared_demo?replicaSet=rs0' \
+  python -m src.proyeccion.construir --reset
+```
+
+Para volver al grafo de `farmared`, ejecutá
+`python -m src.proyeccion.construir --reset` con la configuración de Compose.
+
+Desde la terminal que ejecuta Docker Compose, podés inspeccionar el grafo
+con Cypher:
+
+```sh
+docker compose exec -T neo4j cypher-shell -u neo4j -p farmared-local \
+  'MATCH (n) RETURN n LIMIT 10;'
+```
+
+### q13 · ABM de clientes y actualización del grafo
+
+```sh
+python -m src.abm_clientes ver C001
+python -m src.abm_clientes alta --json '{"nombre": "Ana", "apellido": "Gil", "dni": "40111222", "obra_social": "OSDE", "nro_afiliado": "OS-1"}'
+```
+
+Reemplazá `ID_DEL_ALTA` por el `id_cliente` devuelto por el alta:
+
+```sh
+id_cliente='ID_DEL_ALTA'
+python -m src.abm_clientes modificar "$id_cliente" --json '{"telefono": "11-5555-0000"}'
+python -m src.abm_clientes baja "$id_cliente"
+python -m src.proyeccion.consumidor
+```
+
+Un alta con un DNI existente se rechaza gracias al índice único de
+`clientes.dni`. Cada alta, modificación o baja deja un evento en
+`proyeccion_pendiente` dentro de la misma transacción. El consumidor relee el
+estado actual de MongoDB, actualiza Neo4j con `MERGE` y marca el evento como
+procesado. Si Neo4j no responde, el evento queda pendiente para la próxima
+corrida.
+
+Para q14, P3 registra la venta con
+`registrar_evento(db, "q14.venta", [{"entidad": "venta", "id": ...}, {"entidad": "receta", "id": ...}], session=session)`
+de `src/proyeccion/eventos.py`, dentro de su transacción.
 
 ### Acceso para q14 y q15
 
@@ -147,59 +196,19 @@ en esa sucursal y el segundo tiene un lote en `S101`. Con el cliente activo `C00
 y fecha de prueba 2026-11-11, el caso permite verificar que el saldo de
 `L001` se conserva al abortar.
 
-## Grafo Neo4j, q06 y ABM de clientes (P2)
-
-Neo4j guarda una copia reducida de MongoDB (clientes, ventas, recetas,
-farmacéuticos y sucursales) para q03, q04 y q10. Se puede borrar y
-reconstruir en cualquier momento. Los comandos siguientes son para la terminal
-del Codespace o de `workspace`; desde la Mac anteponé
-`docker compose exec workspace` como en la carga de MongoDB.
-
-```sh
-# Construir el grafo desde MongoDB (correrlo de nuevo no duplica nada)
-/tmp/farmared-venv/bin/python -m src.proyeccion.construir
-# Borrarlo y rearmarlo, por ejemplo después de --reiniciar-demo
-/tmp/farmared-venv/bin/python -m src.proyeccion.construir --reset
-
-# Consultas sobre el grafo
-/tmp/farmared-venv/bin/python -m src.consultas_neo4j q03 C001
-/tmp/farmared-venv/bin/python -m src.consultas_neo4j q04
-/tmp/farmared-venv/bin/python -m src.consultas_neo4j q10 S002
-
-# q06 lee de MongoDB
-/tmp/farmared-venv/bin/python -m src.consultas_mongo q06 --hoy 2026-11-12
-```
-
-El grafo se puede ver en Neo4j Browser (`http://localhost:7474`, usuario
-`neo4j`, contraseña `farmared-local`) con `MATCH (n) RETURN n LIMIT 100`.
-
-### q13: ABM de clientes y actualización del grafo
-
-```sh
-/tmp/farmared-venv/bin/python -m src.abm_clientes ver C001
-/tmp/farmared-venv/bin/python -m src.abm_clientes alta --json '{"nombre": "Ana", "apellido": "Gil", "dni": "40111222", "obra_social": "OSDE", "nro_afiliado": "OS-1"}'
-/tmp/farmared-venv/bin/python -m src.abm_clientes modificar C111 --json '{"telefono": "11-5555-0000"}'
-/tmp/farmared-venv/bin/python -m src.abm_clientes baja C111
-/tmp/farmared-venv/bin/python -m src.proyeccion.consumidor
-```
-
-Un alta con un DNI existente se rechaza gracias al índice único de
-`clientes.dni`. Cada alta, modificación o baja deja un evento en
-`proyeccion_pendiente` dentro de la misma transacción. El consumidor relee el
-estado actual de MongoDB, actualiza Neo4j con `MERGE` y marca el evento como
-procesado. Si Neo4j no responde, el evento queda pendiente para la próxima
-corrida.
-
-Para q14, P3 registra la venta con
-`registrar_evento(db, "q14.venta", [{"entidad": "venta", "id": ...}, {"entidad": "receta", "id": ...}], session=session)`
-de `src/proyeccion/eventos.py`, dentro de su transacción.
-
 ### Tests
 
-Son tests de integración: necesitan MongoDB y Neo4j levantados. Reinician
+Con las dependencias de `requirements.txt` instaladas, los tests unitarios de
+P1 se pueden ejecutar sin levantar MongoDB ni Neo4j.
+
+```sh
+python -m pytest tests/test_consultas_p1.py tests/test_carga_p1.py
+```
+
+Los tests de integración necesitan MongoDB y Neo4j levantados. Reinician
 `farmared_demo` y el grafo, así que después hay que reconstruir el grafo de la
 base habitual con `construir --reset`.
 
 ```sh
-/tmp/farmared-venv/bin/python -m pytest tests
+python -m pytest tests
 ```
