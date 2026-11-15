@@ -5,9 +5,10 @@ FarmaRed usa MongoDB para las ventas, el stock y las recetas, y Neo4j para consu
 ## Estructura
 
 - `docs/` contiene el [enunciado](docs/TPO_FarmaRed.pdf).
-- `data/original/` contiene los nueve CSV de la cátedra. Los registros adicionales se pueden guardar por separado en `data/extra/` al preparar la carga.
+- `data/original/` contiene los nueve CSV de la cátedra.
+- `data/extra/` los registros adicionales se guardan por separado.
 - `src/` contiene la carga de datos y el acceso a MongoDB.
-- `tests/` queda reservada para las pruebas.
+- `tests/` las pruebas.
 
 ## Entorno de desarrollo
 
