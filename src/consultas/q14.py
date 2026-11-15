@@ -183,7 +183,10 @@ def main():
     args = parser.parse_args()
     cliente, db = abrir_mongo()
     with cliente:
-        resultado = registrar_venta(db, args.json, hoy=args.hoy)
+        try:
+            resultado = registrar_venta(db, args.json, hoy=args.hoy)
+        except ValueError as error:
+            raise SystemExit(f"Venta rechazada: {error}") from None
     print(json_util.dumps(resultado, ensure_ascii=False, indent=2))
 
 

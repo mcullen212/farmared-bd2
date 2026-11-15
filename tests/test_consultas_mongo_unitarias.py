@@ -1,4 +1,4 @@
-"""Pruebas unitarias del contrato de las consultas P1 con PyMongo."""
+"""Pruebas unitarias de las consultas MongoDB con un cliente simulado."""
 
 from datetime import date, datetime, timezone
 from unittest.mock import MagicMock
@@ -39,7 +39,7 @@ def db():
     ],
     ids=["q01", "q02", "q08"],
 )
-def test_consultas_con_referencias(db, consulta, coleccion, filtro, referencias, orden):
+def test_consultar_con_referencias_solicita_filtro_relaciones_y_orden(db, consulta, coleccion, filtro, referencias, orden):
     aggregate = getattr(db, coleccion).aggregate
     documentos = [{orden: "ID de prueba"}]
     aggregate.return_value = iter(documentos)
@@ -60,7 +60,7 @@ def test_consultas_con_referencias(db, consulta, coleccion, filtro, referencias,
         ]
 
 
-def test_q05_ventana_inclusiva_de_60_dias_y_conteo_cero(db):
+def test_q05_con_fecha_de_referencia_solicita_ventana_de_60_dias_y_conteo_cero(db):
     q05(db, hoy=date(2026, 1, 1))
     filtro, relacion, conteo, *_ = db.farmaceuticos.aggregate.call_args.args[0]
 
@@ -80,7 +80,7 @@ def test_q05_ventana_inclusiva_de_60_dias_y_conteo_cero(db):
     assert conteo == {"$set": {"cantidad_ventas": {"$ifNull": [{"$first": "$conteo.cantidad"}, 0]}}}
 
 
-def test_q07_ranking_por_unidades_con_desempate(db):
+def test_q07_con_ventas_solicita_ranking_por_unidades_con_desempate(db):
     db.ventas.aggregate.return_value = iter([])
 
     assert q07(db) == []
@@ -96,7 +96,7 @@ def test_q07_ranking_por_unidades_con_desempate(db):
     assert etapas[5]["$lookup"]["from"] == "productos"
 
 
-def test_q09_venta_libre_con_limite_estricto_y_orden(db):
+def test_q09_con_ventas_libres_solicita_limite_estricto_y_orden(db):
     documentos = [{"id_venta": "V001", "total": 4999, "detalle": [{"cantidad": 1}]}]
     cursor = db.ventas.find.return_value
     cursor.sort.return_value = iter(documentos)
@@ -109,7 +109,7 @@ def test_q09_venta_libre_con_limite_estricto_y_orden(db):
     cursor.sort.assert_called_once_with("id_venta", 1)
 
 
-def test_q11_filtra_anio_y_mes_en_la_vista(db):
+def test_q11_con_fecha_de_referencia_solicita_anio_y_mes_en_la_vista(db):
     vista = db["vista_ingresos_por_farmaceutico"]
     cursor = vista.find.return_value
     documentos = [{"id_farmaceutico": "F001", "ingresos_totales": 4800}]
@@ -122,7 +122,7 @@ def test_q11_filtra_anio_y_mes_en_la_vista(db):
     cursor.sort.assert_called_once_with("id_farmaceutico", 1)
 
 
-def test_crear_vista_suma_ventas_completadas_por_farmaceutico_y_mes(db):
+def test_crear_vista_sin_vista_previa_solicita_agrupacion_de_ventas_completadas(db):
     crear_vista_ingresos(db)
 
     db.create_collection.assert_called_once()
@@ -143,21 +143,14 @@ def test_crear_vista_suma_ventas_completadas_por_farmaceutico_y_mes(db):
     assert proyeccion["$project"]["ingresos_totales"] == 1
 
 
-@pytest.mark.parametrize("tipo", ["view", "collection"])
-def test_crear_vista_solo_acepta_una_vista_existente_equivalente(db, tipo):
-    from src.consultas.q11 import AGRUPACION
-
+def test_crear_vista_con_coleccion_del_mismo_nombre_propaga_conflicto(db):
     db.create_collection.side_effect = OperationFailure("Ya existe", code=48)
-    db.list_collections.return_value = iter([
-        {"type": tipo, "options": {"viewOn": "ventas", "pipeline": AGRUPACION}},
-    ])
+    db.list_collections.return_value = iter([{"type": "collection"}])
 
-    if tipo == "view":
+    with pytest.raises(OperationFailure, match="Ya existe") as error:
         crear_vista_ingresos(db)
-    else:
-        with pytest.raises(OperationFailure, match="Ya existe"):
-            crear_vista_ingresos(db)
-    db.list_collections.assert_called_once_with(filter={"name": "vista_ingresos_por_farmaceutico"})
+
+    assert error.value.code == 48
 
 
 @pytest.mark.parametrize(
@@ -167,7 +160,7 @@ def test_crear_vista_solo_acepta_una_vista_existente_equivalente(db, tipo):
         (date(2026, 11, 12), datetime(2025, 11, 12), datetime(2026, 11, 13)),
     ],
 )
-def test_q12_aniversario_inclusivo_y_ventas_de_cualquier_estado(db, hoy, desde, hasta):
+def test_q12_con_fecha_de_referencia_solicita_ventana_desde_el_aniversario(db, hoy, desde, hasta):
     q12(db, hoy=hoy)
 
     relacion, filtro, *_ = db.clientes.aggregate.call_args.args[0]

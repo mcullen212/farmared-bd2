@@ -34,6 +34,19 @@ services:
       timeout: 10s
       retries: 30
 
+  neo4j-test:
+    image: neo4j:5.26
+    profiles: ["test"]
+    environment:
+      NEO4J_AUTH: neo4j/farmared-test
+    tmpfs:
+      - /data
+    healthcheck:
+      test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "farmared-test", "RETURN 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+
   workspace:
     image: mcr.microsoft.com/devcontainers/python:3.12
     command: ["sleep", "infinity"]

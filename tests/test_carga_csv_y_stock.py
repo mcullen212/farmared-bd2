@@ -1,4 +1,4 @@
-"""Pruebas unitarias de la carga inicial y el acceso al stock de P1."""
+"""Pruebas unitarias de la carga de CSV y del repositorio de stock."""
 
 import csv
 from datetime import datetime, timezone
@@ -23,7 +23,7 @@ from src.repositorio_mongo import RepositorioMongo
         ("fecha", "2024-02-29", datetime(2024, 2, 29, tzinfo=timezone.utc)),
     ],
 )
-def test_convertir_tipos_csv(campo, valor, esperado):
+def test_convertir_con_campos_csv_validos_devuelve_valor_tipado(campo, valor, esperado):
     resultado = convertir(campo, valor)
 
     assert type(resultado) is type(esperado)
@@ -31,12 +31,12 @@ def test_convertir_tipos_csv(campo, valor, esperado):
 
 
 @pytest.mark.parametrize("campo,valor", [("cantidad", "0"), ("unidades", "-1"), ("fecha", "2025-02-29")])
-def test_convertir_rechaza_valores_invalidos(campo, valor):
+def test_convertir_con_valor_invalido_lanza_value_error(campo, valor):
     with pytest.raises(ValueError):
         convertir(campo, valor)
 
 
-def test_preparar_datos_embebe_detalles_y_preserva_saldos():
+def test_preparar_datos_con_csv_validos_embebe_detalles_y_preserva_saldos():
     registros = preparar_datos()
 
     assert "detalle_ventas" not in registros
@@ -69,7 +69,7 @@ def test_preparar_datos_embebe_detalles_y_preserva_saldos():
         ("ventas", "total", "0", "Detalle vacío o total incorrecto"),
     ],
 )
-def test_preparar_datos_rechaza_csv_inconsistente(tmp_path, archivo, campo, cambio, error):
+def test_preparar_datos_con_csv_inconsistente_lanza_value_error(tmp_path, archivo, campo, cambio, error):
     datos = copytree(DATA, tmp_path / "data")
     ruta = datos / "original" / f"{archivo}.csv"
     with ruta.open(encoding="utf-8-sig", newline="") as entrada:
@@ -86,7 +86,7 @@ def test_preparar_datos_rechaza_csv_inconsistente(tmp_path, archivo, campo, camb
         preparar_datos(datos)
 
 
-def test_cargar_protege_la_base_habitual():
+def test_cargar_con_reinicio_en_base_habitual_rechaza_operacion():
     db = MagicMock()
     db.name = "farmared"
 
@@ -96,7 +96,7 @@ def test_cargar_protege_la_base_habitual():
     assert db.mock_calls == []
 
 
-def test_cargar_inserta_por_id_sin_sobrescribir_en_la_misma_sesion():
+def test_cargar_con_producto_nuevo_solicita_insercion_sin_sobrescritura():
     from pymongo import UpdateOne
 
     db = MagicMock()
@@ -115,7 +115,7 @@ def test_cargar_inserta_por_id_sin_sobrescribir_en_la_misma_sesion():
     productos.delete_many.assert_not_called()
 
 
-def test_lotes_fefo_filtra_disponibilidad_y_ordena_por_vencimiento(db_stock):
+def test_lotes_fefo_con_fecha_de_referencia_solicita_lotes_disponibles_en_orden(db_stock):
     dia = datetime(2026, 11, 12, tzinfo=timezone.utc)
     repo = RepositorioMongo(db_stock)
 
@@ -138,7 +138,7 @@ def db_stock():
 
 
 @pytest.mark.parametrize("cantidad", [0, -1, 1.5, True])
-def test_decrementar_lote_rechaza_cantidades_invalidas(db_stock, cantidad):
+def test_decrementar_lote_con_cantidad_invalida_rechaza_actualizacion(db_stock, cantidad):
     with pytest.raises(ValueError, match="entero positivo"):
         RepositorioMongo(db_stock).decrementar_lote("L001", cantidad)
 
@@ -146,7 +146,7 @@ def test_decrementar_lote_rechaza_cantidades_invalidas(db_stock, cantidad):
 
 
 @pytest.mark.parametrize("modificados,esperado", [(0, False), (1, True)])
-def test_decrementar_lote_condiciona_el_decremento_al_saldo(db_stock, modificados, esperado):
+def test_decrementar_lote_con_saldo_variable_informa_si_actualizo(db_stock, modificados, esperado):
     actualizar = db_stock.stock_lotes.update_one
     actualizar.return_value.modified_count = modificados
 
