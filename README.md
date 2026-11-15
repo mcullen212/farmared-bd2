@@ -1,22 +1,20 @@
+# FarmaRed
 **Sistema de Gestión de Red de Farmacias**
 
-**Trabajo Práctico Obligatorio**
+FarmaRed usa **MongoDB** para gestionar las ventas, el stock y las recetas, y **Neo4j** para consultar las relaciones entre clientes, ventas y sucursales.
 
-FarmaRed usa MongoDB para las ventas, el stock y las recetas, y Neo4j para consultar las relaciones entre clientes, ventas y sucursales.
+## Trabajo Práctico Obligatorio
 
-**INSTITUTO TECNOLÓGICO DE BUENOS AIRES**
+**Instituto Tecnológico de Buenos Aires (ITBA)**  
+72.41 – Base de Datos II · Segundo cuatrimestre de 2026 (2026c2)
 
-**72.41 \- Base de Datos II 2026c2**
+### Integrantes del Grupo 7
 
-Grupo 7
-
-Integrantes del grupo:
-
-| 64660 | Jonathan Lucas Blankleder           |
-| :---- | :---------------------------------- |
-| 62560 | Martina Schvartz Tallone            |
-| 63065 | Magdalena Itziar Cullen De Erquiaga |
-
+| Legajo | Nombre y apellido                  |
+| :----: | ---------------------------------- |
+| 64660  | Jonathan Lucas Blankleder          |
+| 62560  | Martina Schvartz Tallone           |
+| 63065  | Magdalena Itziar Cullen De Erquiaga |
 
 ## Estructura
 
