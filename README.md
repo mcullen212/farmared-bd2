@@ -23,6 +23,7 @@ FarmaRed usa **MongoDB** para gestionar las ventas, el stock y las recetas, y **
 - `data/extra/` los registros adicionales se guardan por separado.
 - `src/` contiene la carga de datos y el acceso a MongoDB.
 - `tests/` las pruebas.
+- `presentacion/` contiene la presentación en Slidev con la demo en vivo.
 
 ## Preparar el entorno
 
@@ -322,6 +323,59 @@ python -m src.consultas.q14 --hoy 2026-11-12 --json '{
   "detalle":[{"id_producto":"PRD001","cantidad":1},{"id_producto":"PRD101","cantidad":1}]
 }'
 ```
+
+## Presentación con demo en vivo
+
+La presentación está hecha con [Slidev](https://sli.dev) en `presentacion/`. Las slides de
+demo tienen una terminal real embebida que corre las consultas contra MongoDB y Neo4j.
+Esta configuración es para macOS con Homebrew y no usa Docker Compose.
+
+### Instalar las herramientas (una sola vez)
+
+Desde la raíz del repositorio:
+
+```sh
+brew install node ttyd colima docker
+cd presentacion && npm install
+```
+
+### Levantar la presentación
+
+Hacen falta dos terminales abiertas en la raíz del repositorio.
+
+```sh
+# Terminal 1: Docker, MongoDB, Neo4j, datos de la demo y terminal web.
+# Dejala abierta mientras dure la presentación.
+presentacion/levantar.sh
+
+# Terminal 2: la presentación. Se abre en el navegador, en http://localhost:3030.
+cd presentacion && npm run dev
+```
+
+`levantar.sh` carga la base `farmared_demo` desde cero y construye el grafo. No toca la base `farmared`.
+
+### Correr la demo
+
+En cada slide de demo, hacé clic en la terminal y escribí el comando:
+
+| Slide | Comando | Qué muestra |
+|:-:|---|---|
+| 10 | `demo 1` | q07 · top 5 de productos |
+| 12 | `demo 2` | q14 + q15 · venta con receta: antes y después |
+| 13 | `demo 3` | q14 + q15 · venta rechazada sin cambios en la base |
+| 14 | `demo 4` | q03 · historial antes y después de proyectar la venta |
+| 15 | `demo 5` | q10 · clientes de una sucursal |
+
+- Los pasos 2 y 4 se detienen a mitad de camino: presioná Enter para seguir.
+- Para pasar de slide, hacé clic fuera de la terminal y usá las flechas.
+- Los pasos van en orden. Para empezar de nuevo, escribí `demo 0`.
+- Con `p` se abre la vista de presentador, con las notas de cada slide.
+
+Para cerrar todo, presioná Ctrl+C en la terminal 1 y en la terminal 2. Los contenedores
+siguen corriendo hasta que ejecutes `docker rm -f fr-mongo fr-neo4j`.
+
+La demo también se puede correr sin la presentación, en cualquier terminal con el
+entorno configurado: `python -m src.demo` (ver [`docs/DEMO.md`](docs/DEMO.md)).
 
 ## Pruebas
 

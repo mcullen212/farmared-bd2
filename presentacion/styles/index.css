@@ -1,0 +1,236 @@
+:root {
+  --ink: #13211f;
+  --paper: #f4f6f1;
+  --paper2: #e4eae2;
+  --muted: #4a5a57;
+  --line: #c3cec0;
+  --mongo: #1f7a4d;
+  --neo: #2f5fb3;
+  --warn: #b4532a;
+}
+
+.slidev-layout {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Inter', Arial, sans-serif;
+}
+.slidev-layout.alt {
+  background: var(--paper2);
+}
+.slidev-layout.dark {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.slidev-layout h1,
+.slidev-layout h2,
+.slidev-layout h3 {
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  color: inherit;
+}
+.slidev-layout h1 {
+  font-size: 2.2rem;
+  font-weight: 600;
+  line-height: 1.15;
+  margin-bottom: 0.4rem;
+}
+.slidev-layout h1 + p {
+  opacity: 1;
+}
+.slidev-layout h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0 0 0.3rem;
+}
+.slidev-layout p,
+.slidev-layout li {
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.eyebrow {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mongo);
+  margin-bottom: 0.2rem !important;
+}
+.dark .eyebrow {
+  color: #7fc8a0;
+}
+.lead {
+  color: var(--muted);
+}
+.dark .lead {
+  color: #bfd3cd;
+}
+.small {
+  font-size: 0.78rem !important;
+  color: var(--muted);
+}
+
+.tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #f4f6f1;
+  padding: 2px 10px;
+  border-radius: 999px;
+  margin-bottom: 0.3rem;
+}
+.tag.m {
+  background: var(--mongo);
+}
+.tag.n {
+  background: var(--neo);
+}
+
+.card {
+  background: #fbfcf9;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+.card.m {
+  border-top: 5px solid var(--mongo);
+}
+.card.n {
+  border-top: 5px solid var(--neo);
+}
+.card p {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0;
+}
+.card .num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--mongo);
+  margin-bottom: 4px;
+}
+.card.n .num {
+  color: var(--neo);
+}
+
+.stat .big {
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-size: 4rem;
+  font-weight: 700;
+  line-height: 1;
+  margin: 0;
+}
+.stat {
+  border-top: 2px solid var(--ink);
+  padding-top: 10px;
+}
+.stat p {
+  color: var(--muted);
+  margin: 4px 0 0;
+}
+
+.slidev-layout table {
+  font-size: 0.78rem;
+}
+.slidev-layout th {
+  background: var(--ink);
+  color: #f4f6f1;
+  font-weight: 600;
+}
+.slidev-layout td,
+.slidev-layout th {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.chips {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.chip {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  background: #fbfcf9;
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--mongo);
+  border-radius: 6px;
+  padding: 5px 10px;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+.step {
+  background: #fbfcf9;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.step .n {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  color: var(--mongo);
+  font-size: 0.75rem;
+  margin: 0;
+}
+.step .t {
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin: 2px 0;
+  line-height: 1.2;
+}
+.step .b {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.35;
+}
+.bracket {
+  border: 2px solid var(--mongo);
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  height: 12px;
+  margin-top: 6px;
+}
+.callout {
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 12px;
+  padding: 14px 18px;
+}
+.callout p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #bfd3cd;
+}
+.callout p.t {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--paper);
+}
+
+/* demo slides: code on the left, live terminal on the right */
+.demo-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.demo-grid .slidev-code,
+.demo-grid pre {
+  font-size: 0.6rem !important;
+  line-height: 1.4 !important;
+}
+.demo-note {
+  font-size: 0.74rem !important;
+  color: var(--muted);
+  margin-top: 8px !important;
+}
+.demo-head h1 {
+  font-size: 1.6rem;
+  margin-bottom: 0.6rem;
+}
